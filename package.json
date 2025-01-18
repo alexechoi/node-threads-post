@@ -1,0 +1,30 @@
+{
+  "name": "threads-post",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Post to Instagram Threads",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexechoi/node-threads-post.git"
+  },
+  "keywords": [
+    "Instagram",
+    "Threads"
+  ],
+  "author": "Alex Choi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexechoi/node-threads-post/issues"
+  },
+  "homepage": "https://github.com/alexechoi/node-threads-post#readme",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "openai": "^4.79.1",
+    "threads-api": "^1.6.3"
+  }
+}
