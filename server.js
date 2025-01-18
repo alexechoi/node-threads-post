@@ -1,36 +1,69 @@
-import express from 'express';
-import * as dotenv from 'dotenv';
-import { generateTweet } from './generate-threads.js';
-import { immediatePost } from './auto-post.js';
-
-dotenv.config();
+require("dotenv").config();
+const express = require("express");
+const { ThreadsAPI } = require("threads-api");
+const { generateThread } = require("./openaiHelper");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.post('/post-thread', async (req, res) => {
-    try {
-        const { theme } = req.body;
+// Initialize Threads API with credentials
+console.log("Initializing Threads API...");
+const threadsAPI = new ThreadsAPI({
+  username: process.env.THREADS_USERNAME,
+  password: process.env.THREADS_PASSWORD,
+});
+console.log("Threads API initialized successfully!");
 
-        if (!theme) {
-            return res.status(400).json({ error: "Theme is required" });
-        }
-
-        console.log("Generating thread content...");
-        const threadContent = await generateTweet(theme);
-
-        console.log("Posting to Threads...");
-        await immediatePost(threadContent);
-
-        res.json({ success: true, message: "Thread posted successfully!", content: threadContent });
-    } catch (error) {
-        console.error("Error posting thread:", error);
-        res.status(500).json({ error: "Failed to post thread" });
-    }
+// Test endpoint
+app.get("/test", (req, res) => {
+  console.log("Received request to /test");
+  res.json({ success: true, message: "Server is running!" });
 });
 
+// Endpoint for logging in and fetching user profile
+app.get("/login", async (req, res) => {
+  console.log("Received request to /login");
+  try {
+    const { user } = await threadsAPI.getUserProfileLoggedIn();
+    console.log("User logged in successfully:", user);
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Endpoint to generate and post a Threads post
+app.post("/generate-post", async (req, res) => {
+  console.log("Received request to /generate-post with body:", req.body);
+
+  const { theme } = req.body;
+  if (!theme) {
+    console.log("Missing theme in request body");
+    return res.status(400).json({ success: false, error: "Theme is required" });
+  }
+
+  try {
+    // Generate content using OpenAI
+    console.log(`Generating Threads post for theme: "${theme}"...`);
+    const threadContent = await generateThread(theme);
+    console.log("Generated Threads content:", threadContent);
+
+    // Publish to Threads
+    console.log("Publishing post to Threads...");
+    const postID = await threadsAPI.publish({ text: threadContent });
+    console.log("Post published successfully with ID:", postID);
+
+    res.json({ success: true, message: "Post created successfully!", threadContent, postID });
+  } catch (error) {
+    console.error("Error creating Threads post:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Start the server
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
