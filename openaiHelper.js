@@ -1,13 +1,11 @@
-import OpenAI from "openai";
-import * as dotenv from "dotenv";
-
-dotenv.config();
+const OpenAI = require("openai");
+require("dotenv").config();
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const generateThread = async (prompt) => {
+const generateThread = async (prompt) => {
   try {
     console.log(`Generating Threads post for theme: ${prompt}`);
 
@@ -21,10 +19,13 @@ export const generateThread = async (prompt) => {
     });
 
     const generatedText = response.choices[0]?.message?.content?.trim() || "Default post content";
-
+    
     return generatedText.length > 280 ? generatedText.slice(0, 277) + "..." : generatedText;
   } catch (error) {
     console.error("Error generating post:", error);
     throw error;
   }
 };
+
+// Export using CommonJS
+module.exports = { generateThread };
